@@ -2,9 +2,7 @@ defmodule Parser do
   import NimbleParsec
   import Concat
 
-  def main(arg) do
-    equation(arg)
-  end
+  def main(arg), do: equation(arg)
 
   p_true = string("true") |> replace(true) |> label("true")
   p_false = string("false") |> replace(false) |> label("false")
