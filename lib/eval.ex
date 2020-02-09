@@ -9,15 +9,15 @@ defmodule Eval do
   def unwrap({:ok, p}), do: e_primitive(p)
 
   def e_equation(primitive: p), do: e_primitive(p)
-  def e_equation(formula: f), do: e_formula(f) |> unwrap
+  def e_equation(formula: f), do: e_formula(f)
 
   def e_primitive({:boolean, bool}), do: {:ok, bool}
   def e_primitive({:string, str}), do: {:ok, str}
   def e_primitive({:number, num}), do: {:ok, num}
 
   def e_formula(primitive: p), do: e_primitive(p)
-  def e_formula(function: f), do: e_function(f)
-  def e_formula(expression: e), do: e_expression(e)
+  def e_formula(function: f), do: e_function(f) |> unwrap
+  def e_formula(expression: e), do: e_expression(e) |> unwrap
 
   def e_eval(primitive: p), do: {:ok, p}
   def e_eval(function: f), do: e_function(f)
@@ -50,13 +50,13 @@ defmodule Eval do
   end
 
   def e_expression(ls) do
-    [first | rest] = ls |> Enum.map(&e_eval/1)
+    [first | rest] = ls |> Enum.map_every(2, &e_eval/1)
 
     case first_error([first | rest]) do
       nil ->
         rest
         |> Enum.chunk_every(2)
-        |> List.foldl(first, fn [operator | {:ok, right}], {:ok, left} ->
+        |> List.foldl(first, fn [operator, {:ok, right}], {:ok, left} ->
           e_operator(operator, left, right)
         end)
 
@@ -68,8 +68,9 @@ defmodule Eval do
   def e_operator(:add, {:number, l}, {:number, r}), do: {:ok, {:number, l + r}}
   def e_operator(:subtract, {:number, l}, {:number, r}), do: {:ok, {:number, l - r}}
   def e_operator(:multiply, {:number, l}, {:number, r}), do: {:ok, {:number, l * r}}
+  def e_operator(:divide, {:number, l}, {:number, 0.0}), do: {:error, "Can't divide by 0"}
   def e_operator(:divide, {:number, l}, {:number, r}), do: {:ok, {:number, l / r}}
-  def e_operator(:and, {:boolean, l}, {:boolean, r}), do: {:ok, {:bool, l and r}}
-  def e_operator(:or, {:boolean, l}, {:boolean, r}), do: {:ok, {:bool, l or r}}
+  def e_operator(:and, {:boolean, l}, {:boolean, r}), do: {:ok, {:boolean, l and r}}
+  def e_operator(:or, {:boolean, l}, {:boolean, r}), do: {:ok, {:boolean, l or r}}
   def e_operator(_, _, _), do: {:error, "Invalid operation"}
 end
