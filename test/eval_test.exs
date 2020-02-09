@@ -1,10 +1,78 @@
 defmodule EvalTest do
   use ExUnit.Case
+  import Eval
   doctest Eval
 
-  # test "greets the world" do
-  #   assert Eval.main() == :world
+  test "Number" do
+    assert main({:ok, [primitive: {:number, 3.0}]}) == {:ok, 3.0}
+  end
+
+  test "String" do
+    assert main({:ok, [primitive: {:string, "a string"}]}) == {:ok, "a string"}
+  end
+
+  test "Boolean" do
+    assert main({:ok, [primitive: {:boolean, true}]}) == {:ok, true}
+  end
+
+  # test "Most basic equation" do
+  #   assert main({:ok, [formula: [primitive: {:number, 7.0}]]}) == {:ok, 7.0}
   # end
+
+  # test "Expression" do
+  #   assert main(
+  #            {:ok,
+  #             [
+  #               formula: [
+  #                 expression: [
+  #                   {:primitive, {:number, 1.0}},
+  #                   :add,
+  #                   {:primitive, {:number, 2.0}}
+  #                 ]
+  #               ]
+  #             ]}
+  #          ) ==
+  #            {:ok, 3.0}
+  # end
+
+  test "Function: sum" do
+    assert main(
+             {:ok,
+              [
+                formula: [
+                  function: [
+                    {:function_name, "sum"},
+                    {:function_body,
+                     [
+                       {:primitive, {:number, 1.0}},
+                       {:primitive, {:number, 2.0}},
+                       {:primitive, {:number, 3.0}}
+                     ]}
+                  ]
+                ]
+              ]}
+           ) == {:ok, 6}
+  end
+
+  test "Function: join" do
+    assert main(
+             {:ok,
+              [
+                formula: [
+                  function: [
+                    {:function_name, "join"},
+                    {:function_body,
+                     [
+                       {:primitive, {:string, " "}},
+                       {:primitive, {:string, "a"}},
+                       {:primitive, {:string, "b"}},
+                       {:primitive, {:string, "c"}}
+                     ]}
+                  ]
+                ]
+              ]}
+           ) == {:ok, "a b c"}
+  end
 end
 
 # [
