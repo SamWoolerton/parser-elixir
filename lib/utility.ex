@@ -7,7 +7,7 @@ defmodule Parser.Utility do
     {:error, message}
   end
 
-  def first_error(ls), do: Enum.find(ls, &is_error?(&1))
+  def first_error(ls), do: Enum.find(ls, &is_error?/1)
 
   def is_error?({:error, _}), do: true
   def is_error?(_), do: false
