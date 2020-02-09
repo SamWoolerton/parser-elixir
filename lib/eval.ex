@@ -1,6 +1,9 @@
 defmodule Eval do
-  def main({:ok, ast, _, _, _, _}), do: e_equation(ast)
+  def main({:ok, ast, _, _, _, _}), do: e_equation(ast) |> unwrap
   def main({:error, message}), do: {:error, message}
+
+  def unwrap({:error, message}), do: {:error, message}
+  def unwrap({:ok, p}), do: e_primitive(p)
 
   def e_equation(primitive: p), do: e_primitive(p)
   def e_equation(formula: f), do: e_formula(f)
