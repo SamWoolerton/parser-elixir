@@ -2,6 +2,7 @@ defmodule Eval do
   alias Parser.UserFunctions, as: UF
 
   def main({:ok, ast, _, _, _, _}), do: e_equation(ast) |> unwrap
+  def main({:error, message, _, _, _, _}), do: {:error, message}
   def main({:error, message}), do: {:error, message}
 
   def unwrap({:error, message}), do: {:error, message}
@@ -25,12 +26,28 @@ defmodule Eval do
   def e_eval({:function, f}), do: e_function(f)
   def e_eval({:expression, e}), do: e_expression(e)
 
-  # TODO: functions with explicit arity; reject if invalid
-  def e_function(function_name: name, function_body: body),
-    do: e_function_eval(UF.fetch(name), body)
+  def e_function(function_name: name, function_body: body) do
+    uf = UF.fetch(name)
 
-  def e_function_eval(:error, _), do: {:error, "Invalid function name"}
-  def e_function_eval({:ok, {f}}, body), do: f.(Enum.map(body, fn el -> e_eval(el) end))
+    case uf do
+      :error -> {:error, "Invalid function name"}
+      {:ok, {func}} -> e_fn(func, body)
+      {:ok, {func, conditions}} -> e_function_cond(func, conditions, body)
+    end
+  end
+
+  def e_fn(func, body), do: func.(Enum.map(body, fn el -> e_eval(el) end))
+
+  def e_function_cond(func, conditions, body) do
+    len = Enum.count(body)
+
+    case conditions do
+      %{len: l} when l != len -> {:error, "Wrong number of arguments passed to function"}
+      %{min: min} when len < min -> {:error, "Not enough arguments passed to function"}
+      %{max: max} when len > max -> {:error, "Tio many arguments passed to function"}
+      _ -> e_fn(func, body)
+    end
+  end
 
   def e_expression([first | rest]) do
     rest

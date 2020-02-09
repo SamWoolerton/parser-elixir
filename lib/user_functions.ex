@@ -14,8 +14,13 @@ defmodule Parser.UserFunctions do
             _, _ -> {:error, "sum only works on numbers"}
           end)
         end
+      },
+      "join" => {
+        fn [separator | ls] -> {:ok, {:string, "joined"}} end,
+        %{
+          min: 3
+        }
       }
-      # TODO: join function
     }
   end
 end
