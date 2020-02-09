@@ -2,15 +2,14 @@ defmodule Eval do
   alias Parser.UserFunctions, as: UF
   import Parser.Utility
 
-  def main({:ok, ast, _, _, _, _}), do: e_equation(ast) |> unwrap
-  def main({:error, message, _, _, _, _}), do: {:error, message}
-  def main({:error, message}), do: {:error, message}
+  def main({:ok, ast}), do: e_equation(ast)
+  def main(err), do: err
 
   def unwrap({:error, message}), do: {:error, message}
   def unwrap({:ok, p}), do: e_primitive(p)
 
   def e_equation(primitive: p), do: e_primitive(p)
-  def e_equation(formula: f), do: e_formula(f)
+  def e_equation(formula: f), do: e_formula(f) |> unwrap
 
   def e_primitive({:boolean, bool}), do: {:ok, bool}
   def e_primitive({:string, str}), do: {:ok, str}
