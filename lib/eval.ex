@@ -50,17 +50,21 @@ defmodule Eval do
     end
   end
 
-  def e_expression([first | rest]) do
-    rest
-    |> Enum.chunk_every(2)
-    |> List.foldl(e_eval(first), fn [operator | right], left ->
-      e_operation(left, operator, e_eval(right))
-    end)
-  end
+  def e_expression(ls) do
+    [first | rest] = ls |> Enum.map(&e_eval/1)
 
-  def e_operation({:error, message}, _, _), do: {:error, message}
-  def e_operation(_, _, {:error, message}), do: {:error, message}
-  def e_operation({:ok, left}, operator, {:ok, right}), do: e_operator(operator, left, right)
+    case first_error([first | rest]) do
+      nil ->
+        rest
+        |> Enum.chunk_every(2)
+        |> List.foldl(first, fn [operator | {:ok, right}], {:ok, left} ->
+          e_operator(operator, left, right)
+        end)
+
+      err ->
+        err
+    end
+  end
 
   def e_operator(:add, {:number, l}, {:number, r}), do: {:ok, {:number, l + r}}
   def e_operator(:subtract, {:number, l}, {:number, r}), do: {:ok, {:number, l - r}}
