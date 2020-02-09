@@ -121,6 +121,7 @@ defmodule Parser do
       ignore(string("=")) <|> p_formula
     ])
     |> label("equation")
+    |> eos
 
   defparsec(:equation, p_equation)
 end
