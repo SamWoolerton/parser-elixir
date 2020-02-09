@@ -1,5 +1,6 @@
 defmodule Eval do
   alias Parser.UserFunctions, as: UF
+  import Parser.Utility
 
   def main({:ok, ast, _, _, _, _}), do: e_equation(ast) |> unwrap
   def main({:error, message, _, _, _, _}), do: {:error, message}
