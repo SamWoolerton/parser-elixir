@@ -1,4 +1,6 @@
 defmodule Eval do
+  alias Parser.UserFunctions, as: UF
+
   def main({:ok, ast, _, _, _, _}), do: e_equation(ast) |> unwrap
   def main({:error, message}), do: {:error, message}
 
@@ -18,11 +20,17 @@ defmodule Eval do
 
   def e_eval(primitive: p), do: {:ok, p}
   def e_eval(function: f), do: e_function(f)
+  def e_eval(expression: e), do: e_expression(e)
   def e_eval({:primitive, p}), do: {:ok, p}
   def e_eval({:function, f}), do: e_function(f)
+  def e_eval({:expression, e}), do: e_expression(e)
 
-  # TODO: set up functions, pass arguments list, handle
-  def e_function(f), do: 1
+  # TODO: functions with explicit arity; reject if invalid
+  def e_function(function_name: name, function_body: body),
+    do: e_function_eval(UF.fetch(name), body)
+
+  def e_function_eval(:error, _), do: {:error, "Invalid function name"}
+  def e_function_eval({:ok, {f}}, body), do: f.(Enum.map(body, fn el -> e_eval(el) end))
 
   def e_expression([first | rest]) do
     rest
